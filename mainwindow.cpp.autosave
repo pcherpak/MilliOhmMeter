@@ -8,12 +8,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     on_action_triggered();
-
-    {
-        ui->lcdNumber_Time->display(QString::number(time.second()));
-        ui->lineEdit_Command->setText(QString::number(time.second()));
-    }
-
+    QTime time = QTime();
+    ui->lcdNumber_Time->display(QString::number(time.second()));
+    ui->lineEdit_Command->setText(QString::number(time.second()));
 }
 
 MainWindow::~MainWindow()

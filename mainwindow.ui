@@ -56,7 +56,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton_Plot">
+   <widget class="QPushButton" name="pushButton_Kinetic_Start">
     <property name="geometry">
      <rect>
       <x>470</x>
@@ -66,20 +66,20 @@
      </rect>
     </property>
     <property name="text">
-     <string>Plot</string>
+     <string>Kinetic Start</string>
     </property>
    </widget>
-   <widget class="QCustomPlot" name="widget" native="true">
+   <widget class="QCustomPlot" name="customPlot_Resistance" native="true">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>130</y>
-      <width>120</width>
-      <height>80</height>
+      <x>460</x>
+      <y>0</y>
+      <width>291</width>
+      <height>151</height>
      </rect>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -108,7 +108,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -130,7 +130,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -162,6 +162,46 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QCustomPlot" name="customPlot_Temperature" native="true">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>170</y>
+      <width>291</width>
+      <height>161</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="Current_Resistance_Display">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>160</y>
+      <width>181</width>
+      <height>71</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="Current_Range_Display">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>162</y>
+      <width>141</width>
+      <height>71</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="lcdNumber_Time">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>270</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -201,7 +241,7 @@
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header>qcustomplot.h</header>
+   <header location="global">qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
