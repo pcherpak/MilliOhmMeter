@@ -25,13 +25,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->checkBox_NULL->setEnabled(false);
     ui->checkBox_HOLD->setEnabled(false);
     ui->checkBox_Bleeper->setEnabled(false);
+    ui->checkBox_SLOW->setChecked(false);
+    ui->checkBox_FAST->setChecked(false);
     
     
     connect(this, SIGNAL(response(QString)), this, SLOT(get_response(QString)));
    // connect(this, SIGNAL(HighLimitButton(QString)), this, SLOT(on_pushButton_ARROW_RIGHT_clicked()));
 
     time = new QTime();
-    connect(ui->pushButton_Kinetic_Start, SIGNAL(released()), this, SLOT(timerStart()));
+    //connect(ui->pushButton_Kinetic_Start, SIGNAL(released()), this, SLOT(timerStart()));
     //connect(boy+listener, SIGNAL(reciebve), this, SLOT(setData()))
 
     help = new(Help); //Help Window Created
@@ -64,25 +66,7 @@ void MainWindow::Hide_Show_Stuff(bool tf)
     ui->lineEdit_File_Name->setEnabled(tf);
 }
 
-void MainWindow::Set_Data()
-{
-
-}
-
-void MainWindow::Export_Data()
-{
-    QString filename="Data.txt";
-    QFile file( filename );
-    if ( file.open(QIODevice::WriteOnly) )
-        {
-            QTextStream stream( &file );
-            stream << "x" << endl;
-        }
-    else
-    qDebug() << "kann nicht file öffnen";
-
-    qDebug()<< "zu File geschrieben";
-}
+//void MainWindow::Set_Data()
 
 void MainWindow::on_pushButton_RC_enable_clicked()
 {
@@ -98,17 +82,22 @@ void MainWindow::on_pushButton_RC_enable_clicked()
         ui->pushButton_RC_enable->setText("Disable");
         ui->checkBox_Remote_Control->setChecked(true);
 
-            //HELP MENU PUSH
-        /*serial.write(SoftwareVersionCommand.toLocal8Bit());
-        serial.waitForReadyRead(50);
-        QString SoftwareVersion = serial.readAll();
+        //HELP MENU PUSH
+        serial.write(SoftwareVersionCommand.toLocal8Bit());
+        Receive();
+        //serial.waitForReadyRead(50);
+        //QString SoftwareVersion = serial.readAll();
+        QString SoftwareVersion = ui->lineEdit_Response->text();
         
+        //LIMITS SETTING PULL
         serial.write(SerialNumberCommand.toLocal8Bit());
-        serial.waitForReadyRead(50);
-        QString SerialNumber = serial.readAll();
+        Receive();
+        //serial.waitForReadyRead(50);
+        //QString SerialNumber = serial.readAll();
+        QString SerialNumber = ui->lineEdit_Response->text();
         
         emit infoSignal(SoftwareVersion,SerialNumber);
-        */
+
         
        /* while(true) //BULLSHIT FOR LCD DISPLAY
         {
@@ -162,49 +151,202 @@ void MainWindow::on_pushButton_Connect_clicked()
     }
 }
 
+/*void MainWindow::Export_Data(double x, double y)
+{
+    QString filename="Data.txt";
+    QFile file( filename );
+    if ( file.open(QIODevice::WriteOnly) )
+        {
+            QTextStream stream( &file );
+            stream << x << ",   " << y << endl;
+        }
+    else
+    qDebug() << "kann nicht file öffnen";
+
+    qDebug()<< "zu File geschrieben";
+}*/
+
+void MainWindow::on_pushButton_Kinetic_Start_clicked()
+{
+    QString filename="Data.txt";
+    QFile file( filename );
+    file.open(QIODevice::WriteOnly);
+    QTextStream stream( &file );
+    stream << "Time" << "      " << "Resistance" << endl;
+    stream << "seconds" << "       " << "Ohm" << endl;
+    ui->customPlot_Resistance->addGraph();
+    ui->customPlot_Resistance->xAxis->setLabel("Time (s)");
+    ui->customPlot_Resistance->yAxis->setLabel("Resistance (Ohm)");
+    if (ui->pushButton_Kinetic_Start->text() == "Kinetic Start") {
+        this->time->start();
+        Sleep(500);
+        ui->lcdNumber_Time->display(QString::number(time->elapsed()));
+    //ui->lineEdit_Command->setText(QString::number(time.second()));
+
+
+    /*while (ui->pushButton_Kinetic_Start->text() == "Kinetic Stop")
+        {
+        serial.write(ValueQuery.toLocal8Bit());
+        Receive();
+        QString CurrentResistance = ui->lineEdit_Response->text();
+
+        if(CurrentResistance.contains("mOhm"))
+        {
+            CurrentResistance.chop(4);
+            double CurrentResistance_double = CurrentResistance.toDouble() * 0.001;
+            double NewTime_mOhm = time->elapsed();
+            QTextStream stream( &file );
+            stream << NewTime_mOhm << "     " << CurrentResistance_double << endl;
+            x.push_back(NewTime_mOhm);
+            y.push_back(CurrentResistance_double);
+            ui->customPlot_Resistance->graph(0)->setData(x, y);
+            ui->customPlot_Resistance->xAxis->setRange(0, x);
+            ui->customPlot_Resistance->yAxis->setRange(0, y);
+            ui->customPlot_Resistance->replot();
+
+        }
+        if(CurrentResistance.contains("Ohm"))
+        {
+            CurrentResistance.chop(3);
+            double CurrentResistance_double = CurrentResistance.toDouble();
+            double NewTime_Ohm = time->elapsed();
+            QTextStream stream( &file );
+            stream << NewTime_Ohm << "      " << CurrentResistance_double << endl;
+            x.push_back(NewTime_Ohm);
+            y.push_back(CurrentResistance_double);
+            ui->customPlot_Resistance->graph(0)->setData(x, y);
+            ui->customPlot_Resistance->xAxis->setRange(0, x);
+            ui->customPlot_Resistance->yAxis->setRange(0, y);
+            ui->customPlot_Resistance->replot();
+        }
+        if(CurrentResistance.contains("kOhm"))
+        {
+            CurrentResistance.chop(4);
+            double CurrentResistance_double = CurrentResistance.toDouble() * 1000;
+            double NewTime_kOhm = time->elapsed();
+            QTextStream stream( &file );
+            stream << NewTime_kOhm << "     " << CurrentResistance_double << endl;
+            x.push_back(NewTime_kOhm);
+            y.push_back(CurrentResistance_double);
+            ui->customPlot_Resistance->graph(0)->setData(x, y);
+            ui->customPlot_Resistance->xAxis->setRange(0, x);
+            ui->customPlot_Resistance->yAxis->setRange(0, y);
+            ui->customPlot_Resistance->replot();
+        }
+        if(CurrentResistance.contains("MOhm"))
+        {
+            CurrentResistance.chop(4);
+            double CurrentResistance_double = CurrentResistance.toDouble() * 1000000;
+            double NewTime_MOhm = time->elapsed();
+            QTextStream stream( &file );
+            stream << NewTime_MOhm << "     " << CurrentResistance_double << endl;
+            x.push_back(NewTime_MOhm);
+            y.push_back(CurrentResistance_double);
+            ui->customPlot_Resistance->graph(0)->setData(x, y);
+            ui->customPlot_Resistance->xAxis->setRange(0, x);
+            ui->customPlot_Resistance->yAxis->setRange(0, y);
+            ui->customPlot_Resistance->replot();
+        }
+        }*/
+
+    // EXAMPLE data:
+    QVector<double> x(101), y(101); // initialize with entries 0..100
+    for (int i = 0; i < 101; ++i)
+    {
+    x[i] = i / 50.0 - 1; // x goes from -1 to 1
+    y[i] = x[i] * x[i];
+
+    QTextStream stream( &file );
+    stream << x[i] << "     " << y[i] << endl;
+
+    //qDebug() << "kann nicht file öffnen";
+
+    //qDebug() << "zu File geschrieben";
+
+    //Export_Data( x[i], y[i]);
+    // let's plot a quadratic function
+    }
+    // create graph and assign data to it:
+    ui->customPlot_Resistance->graph(0)->setData(x, y);
+    // give the axes some labels:
+    // set axes ranges, so we see all data:
+    ui->customPlot_Resistance->xAxis->setRange(-1, 1);
+    ui->customPlot_Resistance->yAxis->setRange(0, 1);
+    ui->customPlot_Resistance->replot();
+
+    ui->pushButton_Kinetic_Start->setText("Kinetic Stop");
+} else
+    {
+        file.close();
+        ui->pushButton_Kinetic_Start->setText("Kinetic Start");
+    }
+
+}
+
+/*void MainWindow::timerStart()
+{
+  time->start();
+  Sleep(500);
+  ui->lcdNumber_Time->display(QString::number(time->elapsed()));
+  qDebug() << "Privet ya zapustilsya";
+}*/
+
 void MainWindow::on_pushButton_Range_UP_clicked()
 {
     serial.write(RangeQuery.toLocal8Bit());
-    serial.waitForReadyRead(25);
-    ui->lineEdit_Response->setText(serial.readAll());
-    if(ui->lineEdit_Response->text() == "R1")
+    Receive();
+//    ui->lineEdit_Command->setText(RangeQuery);
+//    on_pushButton_Send_clicked();
+//    return;
+
+    //serial.waitForReadyRead(25);
+    if(ui->lineEdit_Response->text() == "[R1]")
     {
         serial.write(R2Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R2")
+    if(ui->lineEdit_Response->text() == "[R2]")
     {
         serial.write(R3Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R3")
+    if(ui->lineEdit_Response->text() == "[R3]")
     {
+        //ui->lineEdit_Command->setText("Ok");
         serial.write(R4Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R4")
+    if(ui->lineEdit_Response->text() == "[R4]")
     {
         serial.write(R5Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R5")
+    if(ui->lineEdit_Response->text() == "[R5]")
     {
         serial.write(R6Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R6")
+    if(ui->lineEdit_Response->text() == "[R6]")
     {
         serial.write(R7Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R7")
+    if(ui->lineEdit_Response->text() == "[R7]")
     {
         serial.write(R8Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
-    if(ui->lineEdit_Response->text() == "R8")
+    if(ui->lineEdit_Response->text() == "[R8]")
     {
         serial.write(R9Command.toLocal8Bit());
+        ui->checkBox_AUTO->setChecked(false);
         return;
     }
 
@@ -213,46 +355,55 @@ void MainWindow::on_pushButton_Range_UP_clicked()
 void MainWindow::on_pushButton_Range_DOWN_clicked()
 {
         serial.write(RangeQuery.toLocal8Bit());
-        serial.waitForReadyRead(25);
-        ui->lineEdit_Response->setText(serial.readAll());
-        if(ui->lineEdit_Response->text() == "R9")
+        Receive();
+        //serial.waitForReadyRead(25);
+        //ui->lineEdit_Response->setText(serial.readAll());
+        if(ui->lineEdit_Response->text() == "[R9]")
         {
             serial.write(R8Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R8")
+        if(ui->lineEdit_Response->text() == "[R8]")
         {
             serial.write(R7Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R7")
+        if(ui->lineEdit_Response->text() == "[R7]")
         {
             serial.write(R6Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R6")
+        if(ui->lineEdit_Response->text() == "[R6]")
         {
             serial.write(R5Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R5")
+        if(ui->lineEdit_Response->text() == "[R5]")
         {
             serial.write(R4Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R4")
+        if(ui->lineEdit_Response->text() == "[R4]")
         {
             serial.write(R3Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R3")
+        if(ui->lineEdit_Response->text() == "[R3]")
         {
             serial.write(R2Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "R2")
+        if(ui->lineEdit_Response->text() == "[R2]")
         {
             serial.write(R1Command.toLocal8Bit());
+            ui->checkBox_AUTO->setChecked(false);
             return;
         }
 }
@@ -260,11 +411,13 @@ void MainWindow::on_pushButton_Range_DOWN_clicked()
 void MainWindow::on_pushButton_20mOhm_clicked()
 {
     serial.write(R1Command.toLocal8Bit());
+    ui->checkBox_AUTO->setChecked(false);
 }
 
 void MainWindow::on_pushButton_Auto_Range_clicked()
 {
     serial.write(AutoRangeCommand.toLocal8Bit());
+    ui->checkBox_AUTO->setChecked(true);
 }
 
 void MainWindow::on_action_triggered()
@@ -292,63 +445,19 @@ void MainWindow::on_pushButton_Send_clicked()
 
     serial.write(command.toLocal8Bit());
 
+    Receive();
 }
 
-void MainWindow::timerStart()
-{
-  time->start();
-  Sleep(500);
-  ui->lcdNumber_Time->display(QString::number(time->elapsed()));
-  qDebug() << "Privet ya zapustilsya";
-}
-
-void MainWindow::on_pushButton_Kinetic_Start_clicked()
-{
-    //this->time->start();
-    //ui->lcdNumber_Time->display(QString::number(time->elapsed()));
-    //ui->lineEdit_Command->setText(QString::number(time.second()));
-
-   /* while(true)
-    {
-
-        serial.write()
-    }*/
-
-    // generate some data:
-    QVector<double> x(101), y(101); // initialize with entries 0..100
-    for (int i = 0; i < 101; ++i)
-    {
-    x[i] = i / 50.0 - 1; // x goes from -1 to 1
-    y[i] = x[i] * x[i]; // let's plot a quadratic function
-    }
-    // create graph and assign data to it:
-    ui->customPlot_Temperature->addGraph();
-    ui->customPlot_Temperature->graph(0)->setData(x, y);
-    ui->customPlot_Temperature->xAxis->setLabel("Time (s)");
-    ui->customPlot_Temperature->yAxis->setLabel("Temperature (grad)");
-    ui->customPlot_Temperature->replot();
-
-    ui->customPlot_Resistance->addGraph();
-    ui->customPlot_Resistance->graph(0)->setData(x, y);
-    // give the axes some labels:
-    ui->customPlot_Resistance->xAxis->setLabel("Time (s)");
-    ui->customPlot_Resistance->yAxis->setLabel("Resistance (Ohm)");
-    // set axes ranges, so we see all data:
-    ui->customPlot_Resistance->xAxis->setRange(-1, 1);
-    ui->customPlot_Resistance->yAxis->setRange(0, 1);
-    ui->customPlot_Resistance->replot();
-
-    Export_Data();
-}
 
 void MainWindow::on_pushButton_HOLD_clicked()
 {
         serial.write(HoldQuery.toLocal8Bit());
-        if (serial.waitForReadyRead(1000)) {
+        Receive();
+        /*if (serial.waitForReadyRead(1000)) {
             ui->lineEdit_Response->setText(serial.readAll());
         } else {
             ui->lineEdit_Response->setText("WTF");
-        }
+        }*/
         if(ui->lineEdit_Response->text() == "[G0]")
         {
             serial.write(G1Command.toLocal8Bit());
@@ -367,15 +476,19 @@ void MainWindow::on_pushButton_RATE_clicked()
 {
         serial.write(RateQuery.toLocal8Bit());
         Receive();
-        ui->lineEdit_Response->setText(serial.readAll());
-        if(ui->lineEdit_Response->text() == "F0")
+        //ui->lineEdit_Response->setText(serial.readAll());
+        if(ui->lineEdit_Response->text() == "[F0]")
         {
             serial.write(F1Command.toLocal8Bit());
+            ui->checkBox_SLOW->setChecked(true);
+            ui->checkBox_FAST->setChecked(false);
             return;
         }
-        if(ui->lineEdit_Response->text() == "F1")
+        if(ui->lineEdit_Response->text() == "[F1]")
         {
             serial.write(F0Command.toLocal8Bit());
+            ui->checkBox_SLOW->setChecked(false);
+            ui->checkBox_FAST->setChecked(true);
             return;
         }
 }
@@ -383,18 +496,19 @@ void MainWindow::on_pushButton_RATE_clicked()
 void MainWindow::on_pushButton_NULL_Correction_clicked()
 {
             serial.write(NullCorrectionQuery.toLocal8Bit());
-            serial.waitForReadyRead(25);
-            ui->lineEdit_Response->setText(serial.readAll());
-            if(ui->lineEdit_Response->text() == "I0")
+            Receive();
+            //serial.waitForReadyRead(25);
+            //ui->lineEdit_Response->setText(serial.readAll());
+            if(ui->lineEdit_Response->text() == "[I0]")
             {
                 serial.write(I1Command.toLocal8Bit());
-                ui->checkBox_AUTO->setChecked(true);
+                ui->checkBox_NULL->setChecked(true);
                 return;
             }
-            if(ui->lineEdit_Response->text() == "I1")
+            if(ui->lineEdit_Response->text() == "[I1]")
             {
                 serial.write(I0Command.toLocal8Bit());
-                ui->checkBox_AUTO->setChecked(false);
+                ui->checkBox_NULL->setChecked(false);
                 return;
             }
 
@@ -414,8 +528,8 @@ void MainWindow::on_pushButton_COMPARE_clicked()
     {
             serial.write(CompareStatusQuery.toLocal8Bit());
             Receive();
-            ui->lineEdit_Response->setText(serial.readAll());
-            if(ui->lineEdit_Response->text() == "C0")
+            //ui->lineEdit_Response->setText(serial.readAll());
+            if(ui->lineEdit_Response->text() == "[C0]")
             {
                 serial.write(C1Command.toLocal8Bit());
                 serial.write(CompareResultQuery.toLocal8Bit());
@@ -434,7 +548,7 @@ void MainWindow::on_pushButton_COMPARE_clicked()
                 }
                 return;
             }
-            if(ui->lineEdit_Response->text() == "C1")
+            if(ui->lineEdit_Response->text() == "[C1]")
             {
                 serial.write(C0Command.toLocal8Bit());
                 return;
@@ -443,16 +557,18 @@ void MainWindow::on_pushButton_COMPARE_clicked()
     else
     {
             serial.write(BeeperQuery.toLocal8Bit());
-            serial.waitForReadyRead(25);
-            ui->lineEdit_Response->setText(serial.readAll());
-            if(ui->lineEdit_Response->text() == "B0")
+            Receive();
+            //ui->lineEdit_Response->setText(serial.readAll());
+            if(ui->lineEdit_Response->text() == "[B0]")
             {
                 serial.write(B1Command.toLocal8Bit());
+                ui->checkBox_Bleeper->setChecked(true);
                 return;
             }
-            if(ui->lineEdit_Response->text() == "B1")
+            if(ui->lineEdit_Response->text() == "[B1]")
             {
                 serial.write(B0Command.toLocal8Bit());
+                ui->checkBox_Bleeper->setChecked(false);
                 return;
             }
     }
@@ -512,7 +628,7 @@ void MainWindow::Receive ()
         array = serial.readAll();
         temp = QString(array);
 
-        while (serial.waitForReadyRead(10)) {
+        while (serial.waitForReadyRead(100)) {
             array = serial.readAll();
             temp += QString(array);
         }
@@ -524,7 +640,7 @@ void MainWindow::Receive ()
         ui->lcdNumber_Time->display("0000");
     }
     */
-    emit response(temp);
+    emit response(temp.trimmed());
 
     return;
 
@@ -536,6 +652,7 @@ void MainWindow::on_pushButton_HIGH_clicked()
     if(NewHigh.length() > 5)
     {
         ui->lineEdit_Response->setText("Error. The format for High Limit is of following: XXXXX");
+        return;
     }
     while(NewHigh.length() != 5)
     {
@@ -550,12 +667,13 @@ void MainWindow::on_pushButton_LOW_clicked()
     QString NewLow = ui->lineEdit_LOW_LIMIT->text();
     if(NewLow.length() > 5)
     {
-        ui->lineEdit_Response->setText("Error. The format for High Limit is of following: XXXXX");
+        ui->lineEdit_Response->setText("Error. The format for Low Limit is of following: XXXXX");
+        return;
     }
     while(NewLow.length() != 5)
     {
         NewLow.prepend("0");
     }
-    QString LowCommand = "[H="+NewLow+"]";
+    QString LowCommand = "[L="+NewLow+"]";
     serial.write(LowCommand.toLocal8Bit());
 }

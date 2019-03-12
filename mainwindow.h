@@ -28,9 +28,9 @@ private slots:
 
     void Hide_Show_Stuff(bool tf);
 
-    void Set_Data();
+    //void Set_Data();
 
-    void Export_Data();
+    //void Export_Data(double x, double y);
 
     void on_pushButton_RC_enable_clicked();
 
@@ -54,7 +54,7 @@ private slots:
 
     void on_pushButton_Send_clicked();
 
-    void timerStart();
+    //void timerStart();
 
    // void on_pushButton_Receive_clicked();
 
@@ -96,6 +96,9 @@ private:
     QTime *time;
 
     QSerialPort serial;
+
+    QVector<double> x;
+    QVector<double> y;
 
     QString ActivationCommand = "[+]";
     QString DeactivationCommand = "[-]";
