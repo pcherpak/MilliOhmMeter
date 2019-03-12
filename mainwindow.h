@@ -50,6 +50,8 @@ private slots:
    // void on_action_2_triggered();
     void on_actionHelp_triggered();
 
+   // void process_stop_signal(const QString &s);
+
     void get_response(const QString &s);
 
     void on_pushButton_Send_clicked();
@@ -78,7 +80,11 @@ private slots:
 
     void on_pushButton_LOW_clicked();
 
+    //void on_pushButton_STOP_clicked();
+
 signals:
+
+    //void stop_signal(const QString &s);
 
     //void HighLimitButton(const QString &s);
     void response(const QString &s);
@@ -99,6 +105,8 @@ private:
 
     QVector<double> x;
     QVector<double> y;
+
+    bool BOOOL;
 
     QString ActivationCommand = "[+]";
     QString DeactivationCommand = "[-]";
