@@ -72,7 +72,7 @@ private slots:
 
     //void on_pushButton_HIGH_LIMIT_clicked();
 
-    void on_pushButton_Switch_function_set_clicked();
+    //void on_pushButton_Switch_function_set_clicked();
 
    // void on_pushButton_ARROW_RIGHT_clicked(const QString &s);
 
@@ -81,6 +81,11 @@ private slots:
     void on_pushButton_LOW_clicked();
 
     //void on_pushButton_STOP_clicked();
+
+    void on_pushButton_Bleeper_clicked();
+
+    void Read_Settings();
+    void on_customPlot_Resistance_Moved(QMouseEvent *event);
 
 signals:
 

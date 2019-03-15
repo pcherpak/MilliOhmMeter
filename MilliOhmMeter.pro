@@ -28,12 +28,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     qcustomplot.cpp \
-    help.cpp
+    help.cpp \
+    milliohmmeter.cpp
 
 HEADERS += \
         mainwindow.h \
     qcustomplot.h \
-    help.h
+    help.h \
+    milliohmmeter.h
 
 FORMS += \
         mainwindow.ui \

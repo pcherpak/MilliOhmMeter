@@ -13,38 +13,46 @@ MainWindow::MainWindow(QWidget *parent) :
     Hide_Show_Stuff(false);
 
     ui->lineEdit_Response->setEnabled(false);
+    ui->lineEdit_x_point->setEnabled(false);
+    ui->lineEdit_y_point->setEnabled(false);
 
     //ui->pushButton_Send->setEnabled(false);
 
-    ui->pushButton_Export->setEnabled(false);
+    //ui->pushButton_Export->setEnabled(false);
 
     //ui->checkBox_Remote_Control->setVisible(false);
     ui->checkBox_Remote_Control->setAttribute(Qt::WA_TransparentForMouseEvents);
     ui->checkBox_Remote_Control->setFocusPolicy(Qt::NoFocus);
-    ui->checkBox_AUTO->setEnabled(false);
-    ui->checkBox_NULL->setEnabled(false);
-    ui->checkBox_HOLD->setEnabled(false);
-    ui->checkBox_Bleeper->setEnabled(false);
-    ui->checkBox_SLOW->setChecked(false);
-    ui->checkBox_FAST->setChecked(false);
-    
+    ui->checkBox_AUTO->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_AUTO->setFocusPolicy(Qt::NoFocus);
+    ui->checkBox_NULL->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_NULL->setFocusPolicy(Qt::NoFocus);
+    ui->checkBox_HOLD->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_HOLD->setFocusPolicy(Qt::NoFocus);
+    ui->checkBox_Bleeper->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_Bleeper->setFocusPolicy(Qt::NoFocus);
+    ui->checkBox_SLOW->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_SLOW->setFocusPolicy(Qt::NoFocus);
+    ui->checkBox_FAST->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->checkBox_FAST->setFocusPolicy(Qt::NoFocus);
+
     //connect (this, Signal(stop_signal(QString), this, SLOT(process_stop_signal(QString));))
 
     connect(this, SIGNAL(response(QString)), this, SLOT(get_response(QString)));
-   // connect(this, SIGNAL(HighLimitButton(QString)), this, SLOT(on_pushButton_ARROW_RIGHT_clicked()));
-
     time = new QTime();
     //connect(ui->pushButton_Kinetic_Start, SIGNAL(released()), this, SLOT(timerStart()));
-    //connect(boy+listener, SIGNAL(reciebve), this, SLOT(setData()))
 
     help = new(Help); //Help Window Created
     connect(this,&MainWindow::infoSignal,help,&Help::infoSlot);
 
     BOOOL = false;
-  }
+
+    connect(ui->customPlot_Resistance, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(on_customPlot_Resistance_Moved(QMouseEvent*)));
+}
 
 MainWindow::~MainWindow()
 {
+    //serial.write(DeactivationCommand.toLocal8Bit());
     delete ui;
 }
 
@@ -56,51 +64,60 @@ void MainWindow::Hide_Show_Stuff(bool tf)
     ui->pushButton_Send->setEnabled(tf);
     ui->pushButton_LOCAL->setEnabled(tf);
     ui->pushButton_20mOhm->setEnabled(tf);
-    ui->pushButton_Export->setEnabled(tf);
     ui->pushButton_COMPARE->setEnabled(tf);
     ui->pushButton_Range_UP->setEnabled(tf);
     ui->pushButton_RC_enable->setEnabled(tf);
-    ui->pushButton_HIGH_LIMIT->setEnabled(tf);
     ui->pushButton_Range_DOWN->setEnabled(tf);
     ui->pushButton_Kinetic_Start->setEnabled(tf);
     ui->pushButton_NULL_Correction->setEnabled(tf);
-    ui->pushButton_Switch_function_set->setEnabled(tf);
     ui->pushButton_HIGH->setEnabled(tf);
     ui->pushButton_LOW->setEnabled(tf);
+    ui->pushButton_Bleeper->setEnabled(tf);
     ui->lineEdit_Command->setEnabled(tf);
-    ui->lineEdit_File_Name->setEnabled(tf);
-    ui->lineEdit_HIGH_LIMIT->setEnabled(tf);
     ui->lineEdit_LOW_LIMIT->setEnabled(tf);
+    ui->lineEdit_HIGH_LIMIT->setEnabled(tf);
 }
 
-//void MainWindow::Set_Data()
 
 void MainWindow::on_pushButton_RC_enable_clicked()
 {
-    //qDebug() << "first button pushed";
 
     if (ui->pushButton_RC_enable->text() == "Enable")
     {
-        //qDebug() << "second button pushed";
 
-        //ui->lineEdit_Command->setText("[+]");
-        //serial.write(ui->lineEdit_Command->text().toLocal8Bit());
         serial.write(ActivationCommand.toLocal8Bit());
         ui->pushButton_RC_enable->setText("Disable");
         ui->checkBox_Remote_Control->setChecked(true);
 
+
+        serial.write(HighLimitQuery.toLocal8Bit());
+        Receive();
+        QString High = ui->lineEdit_Response->text();
+        High.chop(1);
+        High.remove(0,7);
+        while (High.length() != 5)
+        {
+            High.remove(0,1);
+        }
+        ui->lineEdit_HIGH_LIMIT->setText(High);
+
+        serial.write(LowLimitQuery.toLocal8Bit());
+        Receive();
+        QString Low = ui->lineEdit_Response->text();
+        Low.chop(1);
+        Low.remove(0,3);
+        ui->lineEdit_LOW_LIMIT->setText(Low);
+
+        Read_Settings();
+
         //HELP MENU PUSH
         serial.write(SoftwareVersionCommand.toLocal8Bit());
         Receive();
-        //serial.waitForReadyRead(50);
-        //QString SoftwareVersion = serial.readAll();
         QString SoftwareVersion = ui->lineEdit_Response->text();
         
         //LIMITS SETTING PULL
         serial.write(SerialNumberCommand.toLocal8Bit());
         Receive();
-        //serial.waitForReadyRead(50);
-        //QString SerialNumber = serial.readAll();
         QString SerialNumber = ui->lineEdit_Response->text();
         
         emit infoSignal(SoftwareVersion,SerialNumber);
@@ -128,10 +145,11 @@ void MainWindow::on_pushButton_RC_enable_clicked()
 void MainWindow::on_pushButton_Connect_clicked()
 {
     if (ui->pushButton_Connect->text() == "Connect") {
+
         serial.setPortName(ui->comboBox_Port_Name->currentText());
         serial.setBaudRate(QSerialPort::Baud9600);
-        serial.setDataBits(QSerialPort::Data8);
         serial.setParity(QSerialPort::NoParity);
+        serial.setDataBits(QSerialPort::Data8);
         serial.setStopBits(QSerialPort::OneStop);
         serial.setFlowControl(QSerialPort::NoFlowControl);
 
@@ -146,7 +164,7 @@ void MainWindow::on_pushButton_Connect_clicked()
 
             return;
         }
-        //qDebug()<<"no mistake";
+        serial.write(DeactivationCommand.toLocal8Bit());
         ui->pushButton_Connect->setText("Disconnect");
     } else {
         //qDebug()<<"mistake???";
@@ -173,24 +191,44 @@ void MainWindow::on_pushButton_Connect_clicked()
     qDebug()<< "zu File geschrieben";
 }*/
 
+void MainWindow::on_customPlot_Resistance_Moved(QMouseEvent *event)
+{
+    ui->lineEdit_x_point->setText(QString::number(ui->customPlot_Resistance->xAxis->pixelToCoord(event->pos().x())));
+    ui->lineEdit_y_point->setText(QString::number(ui->customPlot_Resistance->yAxis->pixelToCoord(event->pos().y())));
+
+    return;
+}
 void MainWindow::on_pushButton_Kinetic_Start_clicked()
 {
-
-    QString filename="Data.txt";
-    QFile file( filename );
-    file.open(QIODevice::WriteOnly);
-    QTextStream stream( &file );
-    stream << "Time" << "      " << "Resistance" << endl;
-    stream << "seconds" << "       " << "Ohm" << endl;
+    x.clear();
+    y.clear();
+    Hide_Show_Stuff(false);
+    ui->pushButton_Kinetic_Start->setEnabled(true);
+    //QString Data = QDateTime::currentDateTime().toString("yyyy_MM_dd_HH_mm_ss");
+    //QString filename=Data + ".txt";
+    //QString filename="Data.txt";
+    //QFile file( filename );
+    //file.open(QIODevice::WriteOnly);
+    //QTextStream stream( &file );
+    //stream << "Time" << "      " << "Resistance" << endl;
+    //stream << "seconds" << "       " << "Ohm" << endl;
     ui->customPlot_Resistance->addGraph();
     ui->customPlot_Resistance->xAxis->setLabel("Time (s)");
     ui->customPlot_Resistance->yAxis->setLabel("Resistance (Ohm)");
+    ui->customPlot_Resistance->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
     if (ui->pushButton_Kinetic_Start->text() == "Kinetic Start") {
+        QString Data = QDateTime::currentDateTime().toString("yyyy_MM_dd_HH_mm_ss");
+        QString filename=Data + ".txt";
+        QFile file( filename );
+        file.open(QIODevice::WriteOnly);
+        QTextStream stream( &file );
+        stream << "Time" << "      " << "Resistance" << endl;
+        stream << "seconds" << "       " << "Ohm" << endl;
         BOOOL = true;
         ui->pushButton_Kinetic_Start->setText("Kinetic Stop");
         this->time->start();
         //Sleep(500);
-        ui->lcdNumber_Time->display(QString::number(time->elapsed()));
+        //ui->lcdNumber_Time->display(QString::number(time->elapsed()));
     //ui->lineEdit_Command->setText(QString::number(time.second()));
 
 
@@ -206,7 +244,10 @@ void MainWindow::on_pushButton_Kinetic_Start_clicked()
                 CurrentResistance.remove(0,3);
                 //CurrentResistance.remove(0,1);
                 double CurrentResistance_double = CurrentResistance.toDouble();
+                //qDebug()<<CurrentResistance;
+               // qDebug()<<CurrentResistance_double;
                 CurrentResistance_double = CurrentResistance_double/1000;
+                //qDebug()<<CurrentResistance_double;
                 double NewTime_mOhm = time->elapsed();
                 NewTime_mOhm = NewTime_mOhm/1000;
                 QTextStream stream( &file );
@@ -219,27 +260,18 @@ void MainWindow::on_pushButton_Kinetic_Start_clicked()
                 ui->customPlot_Resistance->replot();
 
             }
-            if(CurrentResistance.contains("Ohm"))
+            if(CurrentResistance.contains("KOhm"))
             {
-                CurrentResistance.chop(4);
+                //qDebug()<<Kinetic_Condition(CurrentResistance);
+                CurrentResistance.chop(5);
                 CurrentResistance.remove(0,3);
                 double CurrentResistance_double = CurrentResistance.toDouble();
-                double NewTime_Ohm = time->elapsed();
-                QTextStream stream( &file );
-                stream << NewTime_Ohm << "      " << CurrentResistance_double << endl;
-                x.push_back(NewTime_Ohm);
-                y.push_back(CurrentResistance_double);
-                ui->customPlot_Resistance->graph(0)->setData(x, y);
-                ui->customPlot_Resistance->rescaleAxes();
-                ui->customPlot_Resistance->rescaleAxes();
-                ui->customPlot_Resistance->replot();
-            }
-            if(CurrentResistance.contains("kOhm"))
-            {
-                CurrentResistance.chop(5);
-                CurrentResistance.remove(0,2);
-                double CurrentResistance_double = CurrentResistance.toDouble() * 1000;
+                CurrentResistance_double = CurrentResistance_double * 1000;
+                //qDebug()<<CurrentResistance;
+                //qDebug()<<CurrentResistance_double;
                 double NewTime_kOhm = time->elapsed();
+                //qDebug()<<CurrentResistance_double;
+                NewTime_kOhm = NewTime_kOhm/1000;
                 QTextStream stream( &file );
                 stream << NewTime_kOhm << "     " << CurrentResistance_double << endl;
                 x.push_back(NewTime_kOhm);
@@ -249,12 +281,33 @@ void MainWindow::on_pushButton_Kinetic_Start_clicked()
                 ui->customPlot_Resistance->rescaleAxes();
                 ui->customPlot_Resistance->replot();
             }
+            if(CurrentResistance.contains("Ohm"))
+            {
+                CurrentResistance.chop(4);
+                CurrentResistance.remove(0,3);
+                double CurrentResistance_double = CurrentResistance.toDouble();
+                CurrentResistance_double = CurrentResistance_double/1000;
+                qDebug()<<CurrentResistance_double;
+                double NewTime_Ohm = time->elapsed();
+                NewTime_Ohm = NewTime_Ohm/1000;
+                QTextStream stream( &file );
+                stream << NewTime_Ohm << "      " << CurrentResistance_double << endl;
+                x.push_back(NewTime_Ohm);
+                y.push_back(CurrentResistance_double);
+                ui->customPlot_Resistance->graph(0)->setData(x, y);
+                ui->customPlot_Resistance->rescaleAxes();
+                ui->customPlot_Resistance->rescaleAxes();
+                ui->customPlot_Resistance->replot();
+            }
+
             if(CurrentResistance.contains("MOhm"))
             {
                 CurrentResistance.chop(5);
                 CurrentResistance.remove(0,2);
-                double CurrentResistance_double = CurrentResistance.toDouble() * 1000000;
+                double CurrentResistance_double = CurrentResistance.toDouble();
+                CurrentResistance_double = CurrentResistance_double * 1000000;
                 double NewTime_MOhm = time->elapsed();
+                NewTime_MOhm = NewTime_MOhm/1000;
                 QTextStream stream( &file );
                 stream << NewTime_MOhm << "     " << CurrentResistance_double << endl;
                 x.push_back(NewTime_MOhm);
@@ -293,21 +346,13 @@ void MainWindow::on_pushButton_Kinetic_Start_clicked()
     ui->customPlot_Resistance->replot();*/
 } else
     {
+        Hide_Show_Stuff(true);
         BOOOL = false;
-        file.close();
+        //file.close();
         ui->pushButton_Kinetic_Start->setText("Kinetic Start");
     }
 
 }
-/*void MainWindow::on_pushButton_STOP_clicked()
-{
-    emit stop_signal(false);
-}
-
-void MainWindow::process_stop_signal(const QString &s)
-{
-
-}*/
 
 /*void MainWindow::timerStart()
 {
@@ -480,59 +525,6 @@ void MainWindow::on_actionHelp_triggered()
     help->show();
 }
 
-
-//-----------------------------------------------------COMMUNICATION-------------------------------------------------------------//
-void MainWindow::on_pushButton_Send_clicked()
-{
-    qDebug() << "send button pushed";
-    QString command = ui->lineEdit_Command->text();
-
-    serial.write(command.toLocal8Bit());
-
-    Receive();
-}
-
-void MainWindow::get_response(const QString &s)
-{
-    ui->lineEdit_Response->setText(s);
-
-    return;
-}
-
-void MainWindow::Receive ()
-{
-    QString temp = "";
-    QByteArray array;
-
-    //int WaitTime = ui->spinBox_TimeToWait->value();
-
-    int WaitTime = 500;
-
-    QTime time_to_wait = QTime(0, 0, 0, 0);
-
-    time_to_wait.start();
-    if (serial.waitForReadyRead(WaitTime)) {
-        array = serial.readAll();
-        temp = QString(array);
-
-        while (serial.waitForReadyRead(100)) {
-            array = serial.readAll();
-            temp += QString(array);
-        }
-    }
-   // ui->lcdNumber_Time->display(QString::number(time.elapsed()));
-
-   /* if (temp.isEmpty()) {
-        temp = "Wait write request timeout";
-        ui->lcdNumber_Time->display("0000");
-    }
-    */
-    emit response(temp.trimmed());
-
-    return;
-
-}
-
 void MainWindow::on_pushButton_HOLD_clicked()
 {
         serial.write(HoldQuery.toLocal8Bit());
@@ -614,8 +606,8 @@ void MainWindow::on_pushButton_LOCAL_clicked()
 
 void MainWindow::on_pushButton_COMPARE_clicked()
 {
-    if(ui->pushButton_COMPARE->text() == "COMPARE")
-    {
+    //if(ui->pushButton_COMPARE->text() == "COMPARE")
+    //{
             serial.write(CompareStatusQuery.toLocal8Bit());
             Receive();
             //ui->lineEdit_Response->setText(serial.readAll());
@@ -648,8 +640,8 @@ void MainWindow::on_pushButton_COMPARE_clicked()
                 serial.write(C0Command.toLocal8Bit());
                 return;
             }
-    }
-    else
+    //}
+    /*else
     {
             serial.write(BeeperQuery.toLocal8Bit());
             Receive();
@@ -668,9 +660,70 @@ void MainWindow::on_pushButton_COMPARE_clicked()
                 ui->checkBox_Bleeper->setChecked(false);
                 return;
             }
+    }*/
+
+}
+void MainWindow::on_pushButton_Bleeper_clicked()
+{
+    serial.write(BeeperQuery.toLocal8Bit());
+    Receive();
+    //ui->lineEdit_Response->setText(serial.readAll());
+    //if(ui->lineEdit_Response->text() == "[B0]")
+    if(ui->lineEdit_Response->text().contains("[B0]"))
+    {
+        serial.write(B1Command.toLocal8Bit());
+        ui->checkBox_Bleeper->setChecked(true);
+        return;
+    }
+    //if(ui->lineEdit_Response->text() == "[B1]")
+    if(ui->lineEdit_Response->text().contains("[B1]"))
+    {
+        serial.write(B0Command.toLocal8Bit());
+        ui->checkBox_Bleeper->setChecked(false);
+        return;
+    }
+}
+
+void MainWindow::Read_Settings()
+{
+    serial.write(RangeQuery.toLocal8Bit());
+    Receive();
+    if(ui->lineEdit_Response->text().contains("R01"))
+        ui->checkBox_AUTO->setChecked(true);
+    else {
+        ui->checkBox_AUTO->setChecked(false);
+    }
+    serial.write(HoldQuery.toLocal8Bit());
+    Receive();
+    if(ui->lineEdit_Response->text().contains("G1"))
+        ui->checkBox_HOLD->setChecked(true);
+    else {
+        ui->checkBox_HOLD->setChecked(false);
+    }
+    serial.write(NullCorrectionQuery.toLocal8Bit());
+    Receive();
+    if(ui->lineEdit_Response->text().contains("I1"))
+        ui->checkBox_NULL->setChecked(true);
+    else {
+        ui->checkBox_NULL->setChecked(false);
+    }
+    serial.write(BeeperQuery.toLocal8Bit());
+    Receive();
+    if(ui->lineEdit_Response->text().contains("B1"))
+        ui->checkBox_Bleeper->setChecked(true);
+    else {
+        ui->checkBox_Bleeper->setChecked(false);
+    }
+    serial.write(RateQuery.toLocal8Bit());
+    Receive();
+    if(ui->lineEdit_Response->text().contains("F1"))
+        ui->checkBox_SLOW->setChecked(true);
+    else {
+        ui->checkBox_FAST->setChecked(true);
     }
 
 }
+
 
 /*void MainWindow::on_pushButton_HIGH_LIMIT_clicked()
 {
@@ -687,7 +740,7 @@ void MainWindow::on_pushButton_ARROW_RIGHT_clicked(const int temp)
 
 }*/
 
-void MainWindow::on_pushButton_Switch_function_set_clicked()
+/*void MainWindow::on_pushButton_Switch_function_set_clicked()
 {qDebug()<<"switch button pressed";
     if(ui->pushButton_HIGH_LIMIT->text() == "HILM")
     {
@@ -700,7 +753,7 @@ void MainWindow::on_pushButton_Switch_function_set_clicked()
         ui->pushButton_HIGH_LIMIT->setText("HILM");
         ui->pushButton_COMPARE->setText("COMPARE");
     }
-}
+}*/
 
 
 
@@ -735,3 +788,60 @@ void MainWindow::on_pushButton_LOW_clicked()
     QString LowCommand = "[L="+NewLow+"]";
     serial.write(LowCommand.toLocal8Bit());
 }
+
+//-----------------------------------------------------COMMUNICATION BEGIN-------------------------------------------------------------//
+void MainWindow::on_pushButton_Send_clicked()
+{
+    qDebug() << "send button pushed";
+    QString command = ui->lineEdit_Command->text();
+
+    serial.write(command.toLocal8Bit());
+
+    Receive();
+}
+
+void MainWindow::get_response(const QString &s)
+{
+    ui->lineEdit_Response->setText(s);
+
+    return;
+}
+
+void MainWindow::Receive ()
+{
+    QString temp = "";
+    QByteArray array;
+
+    //int WaitTime = ui->spinBox_TimeToWait->value();
+
+    int WaitTime = 500;
+
+    QTime time_to_wait = QTime(0, 0, 0, 0);
+
+    time_to_wait.start();
+    if (serial.waitForReadyRead(WaitTime)) {
+        array = serial.readAll();
+        temp = QString(array);
+
+        while (serial.waitForReadyRead(150)) {
+            array = serial.readAll();
+            temp += QString(array);
+        }
+    }
+   // ui->lcdNumber_Time->display(QString::number(time.elapsed()));
+
+   /* if (temp.isEmpty()) {
+        temp = "Wait write request timeout";
+        ui->lcdNumber_Time->display("0000");
+    }
+    */
+    emit response(temp.trimmed());
+
+    return;
+
+}
+//-----------------------------------------------------COMMUNICATION END-------------------------------------------------------------//
+
+
+
+
