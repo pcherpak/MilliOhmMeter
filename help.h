@@ -15,7 +15,7 @@ public:
     explicit Help(QWidget *parent = nullptr);
     ~Help();
 public slots:
-    void infoSlot(const QString,const QString);
+    void infoSlot(const QString &, const QString &);
 private:
     Ui::Help *ui;
 };

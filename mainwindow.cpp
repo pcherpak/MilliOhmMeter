@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->checkBox_SLOW->setFocusPolicy(Qt::NoFocus);
     ui->checkBox_FAST->setAttribute(Qt::WA_TransparentForMouseEvents);
     ui->checkBox_FAST->setFocusPolicy(Qt::NoFocus);
+    ui->pushButton_RC_enable->setEnabled(false);
 
     //connect (this, Signal(stop_signal(QString), this, SLOT(process_stop_signal(QString));))
 
@@ -63,7 +64,6 @@ void MainWindow::Hide_Show_Stuff(bool tf)
     ui->pushButton_20mOhm->setEnabled(tf);
     ui->pushButton_COMPARE->setEnabled(tf);
     ui->pushButton_Range_UP->setEnabled(tf);
-    ui->pushButton_RC_enable->setEnabled(tf);
     ui->pushButton_Range_DOWN->setEnabled(tf);
     ui->pushButton_Kinetic_Start->setEnabled(tf);
     ui->pushButton_NULL_Correction->setEnabled(tf);
@@ -87,13 +87,14 @@ void MainWindow::on_pushButton_RC_enable_clicked()
         milliOhmMeter->activation();
         ui->pushButton_RC_enable->setText("Disable");
         ui->checkBox_Remote_Control->setChecked(true);
-
+        Hide_Show_Stuff(true);
         Read_Settings();
     }
     else {
         milliOhmMeter->deactivation();
         ui->pushButton_RC_enable->setText("Enable");
         ui->checkBox_Remote_Control->setChecked(false);
+        Hide_Show_Stuff(false);
     }
 }
 
@@ -104,12 +105,18 @@ void MainWindow::on_pushButton_Connect_clicked()
             emit response(tr("Can't open %1, error code %2").arg(ui->comboBox_Port_Name->currentText()).arg(milliOhmMeter->serialError()));
             return;
         }
+        if(milliOhmMeter->serialNumber() == "") {
+            milliOhmMeter->disconnectSerial();
+            emit response("Another device. Change COM port");
+            return;
+        }
         ui->pushButton_Connect->setText("Disconnect");
-        Hide_Show_Stuff(true);
+        ui->pushButton_RC_enable->setEnabled(true);
         milliOhmMeter->deactivation();
     } else {
+        on_pushButton_RC_enable_clicked();
         milliOhmMeter->disconnectSerial();
-        Hide_Show_Stuff(false);
+        ui->pushButton_RC_enable->setEnabled(false);
         ui->pushButton_Connect->setText("Connect");
     }
 }
@@ -144,8 +151,9 @@ void MainWindow::on_pushButton_Kinetic_Start_clicked()
         while (BOOOL) {
             double newTime = time->elapsed();
             newTime = newTime/1000;
-            QTextStream stream( &file );
             double value = milliOhmMeter->value();
+            if(value == 0)
+                continue;
             stream << newTime << "\t" << value << endl;
             x.push_back(newTime);
             y.push_back(value);

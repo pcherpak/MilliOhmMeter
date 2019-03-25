@@ -2,46 +2,46 @@
 
 MilliOhmMeter::MilliOhmMeter()
 {
-
+    serial = new(QSerialPort);
 }
 
 bool MilliOhmMeter::connectSerial(const QString &s)
 {
-    serial.setPortName(s);
-    serial.setBaudRate(QSerialPort::Baud9600);
-    serial.setParity(QSerialPort::NoParity);
-    serial.setDataBits(QSerialPort::Data8);
-    serial.setStopBits(QSerialPort::OneStop);
-    serial.setFlowControl(QSerialPort::NoFlowControl);
-    return serial.open(QIODevice::ReadWrite);
+    serial->setPortName(s);
+    serial->setBaudRate(QSerialPort::Baud9600);
+    serial->setParity(QSerialPort::NoParity);
+    serial->setDataBits(QSerialPort::Data8);
+    serial->setStopBits(QSerialPort::OneStop);
+    serial->setFlowControl(QSerialPort::NoFlowControl);
+    return serial->open(QIODevice::ReadWrite);
 }
 
-void MilliOhmMeter::disconnectSerial()
+void MilliOhmMeter::disconnectSerial() const
 {
-    serial.close();
+    serial->close();
 }
 
-QSerialPort::SerialPortError MilliOhmMeter::serialError()
+QSerialPort::SerialPortError MilliOhmMeter::serialError() const
 {
-    return serial.error();
+    return serial->error();
 }
 
-void MilliOhmMeter::send(const QString &s)
+void MilliOhmMeter::send(const QString &s) const
 {
-    serial.write(s.toLocal8Bit());
+    serial->write(s.toLocal8Bit());
 }
 
-void MilliOhmMeter::activation()
+void MilliOhmMeter::activation() const
 {
     send(ActivationCommand);
 }
 
-void MilliOhmMeter::deactivation()
+void MilliOhmMeter::deactivation() const
 {
     send(DeactivationCommand);
 }
 
-void MilliOhmMeter::lowLimit(QString s)
+void MilliOhmMeter::lowLimit(QString s) const
 {
     if(s.length() > 5)
     {
@@ -55,7 +55,7 @@ void MilliOhmMeter::lowLimit(QString s)
     send("[L="+s+"]");
 }
 
-void MilliOhmMeter::highLimit(QString s)
+void MilliOhmMeter::highLimit(QString s) const
 {
     if(s.length() > 5)
     {
@@ -69,7 +69,7 @@ void MilliOhmMeter::highLimit(QString s)
     send("[H="+s+"]");
 }
 
-QString MilliOhmMeter::lowLimit()
+QString MilliOhmMeter::lowLimit() const
 {
     send(LowLimitQuery);
     QString Low = receive();
@@ -78,7 +78,7 @@ QString MilliOhmMeter::lowLimit()
     return Low;
 }
 
-QString MilliOhmMeter::highLimit()
+QString MilliOhmMeter::highLimit() const
 {
     send(HighLimitQuery);
     QString High = receive();
@@ -87,7 +87,7 @@ QString MilliOhmMeter::highLimit()
     return High;
 }
 
-bool MilliOhmMeter::autoRange()
+bool MilliOhmMeter::autoRange() const
 {
     send(RangeQuery);
     if(receive().contains("R01"))
@@ -97,12 +97,12 @@ bool MilliOhmMeter::autoRange()
     }
 }
 
-void MilliOhmMeter::autoRange(bool)
+void MilliOhmMeter::autoRange(bool) const
 {
     send(AutoRangeCommand);
 }
 
-bool MilliOhmMeter::hold()
+bool MilliOhmMeter::hold() const
 {
     send(HoldQuery);
     if(receive().contains("G1"))
@@ -112,7 +112,7 @@ bool MilliOhmMeter::hold()
     }
 }
 
-void MilliOhmMeter::hold(bool bl)
+void MilliOhmMeter::hold(bool bl) const
 {
     if(bl)
         send(G0Command);
@@ -120,7 +120,7 @@ void MilliOhmMeter::hold(bool bl)
         send(G1Command);
 }
 
-bool MilliOhmMeter::nullCollection()
+bool MilliOhmMeter::nullCollection() const
 {
     send(NullCorrectionQuery);
     if(receive().contains("I1"))
@@ -130,7 +130,7 @@ bool MilliOhmMeter::nullCollection()
     }
 }
 
-void MilliOhmMeter::nullCollection(bool bl)
+void MilliOhmMeter::nullCollection(bool bl) const
 {
     if(bl)
         send(I1Command);
@@ -138,7 +138,7 @@ void MilliOhmMeter::nullCollection(bool bl)
         send(I0Command);
 }
 
-bool MilliOhmMeter::beeper()
+bool MilliOhmMeter::beeper() const
 {
     send(BeeperQuery);
     if(receive().contains("B1"))
@@ -148,7 +148,7 @@ bool MilliOhmMeter::beeper()
     }
 }
 
-void MilliOhmMeter::beeper(bool bl)
+void MilliOhmMeter::beeper(bool bl) const
 {
     if(bl)
         send(B1Command);
@@ -156,7 +156,7 @@ void MilliOhmMeter::beeper(bool bl)
         send(B0Command);
 }
 
-bool MilliOhmMeter::rate()
+bool MilliOhmMeter::rate() const
 {
     send(RateQuery);
     if(receive().contains("F1"))
@@ -166,7 +166,7 @@ bool MilliOhmMeter::rate()
     }
 }
 
-void MilliOhmMeter::rate(bool bl)
+void MilliOhmMeter::rate(bool bl) const
 {
     if(bl)
         send(F1Command);
@@ -174,17 +174,17 @@ void MilliOhmMeter::rate(bool bl)
         send(F0Command);
 }
 
-void MilliOhmMeter::range20mOhm()
+void MilliOhmMeter::range20mOhm() const
 {
     send(R1Command);
 }
 
-void MilliOhmMeter::local()
+void MilliOhmMeter::local() const
 {
     send(DeactivationCommand);
 }
 
-void MilliOhmMeter::downRange()
+void MilliOhmMeter::downRange() const
 {
     send(RangeQuery);
     QString range = receive();
@@ -222,7 +222,7 @@ void MilliOhmMeter::downRange()
     }
 }
 
-void MilliOhmMeter::upRange()
+void MilliOhmMeter::upRange() const
 {
     send(RangeQuery);
     QString range = receive();
@@ -260,7 +260,7 @@ void MilliOhmMeter::upRange()
     }
 }
 
-double MilliOhmMeter::value()
+double MilliOhmMeter::value() const
 {
     send(ValueQuery);
     QString CurrentResistance = receive();
@@ -293,7 +293,7 @@ double MilliOhmMeter::value()
         return 0;
 }
 
-void MilliOhmMeter::compare(bool bl)
+void MilliOhmMeter::compare(bool bl) const
 {
     if(bl)
         send(C1Command);
@@ -301,7 +301,7 @@ void MilliOhmMeter::compare(bool bl)
         send(C0Command);
 }
 
-bool MilliOhmMeter::compare()
+bool MilliOhmMeter::compare() const
 {
     send(CompareStatusQuery);
     QString s = receive();
@@ -311,7 +311,7 @@ bool MilliOhmMeter::compare()
         return true;
 }
 
-QString MilliOhmMeter::compareResult()
+QString MilliOhmMeter::compareResult() const
 {
     send(CompareResultQuery);
     QString s = receive();
@@ -325,28 +325,28 @@ QString MilliOhmMeter::compareResult()
         return "Something has gone wrong";
 }
 
-QString MilliOhmMeter::softwareVersion()
+QString MilliOhmMeter::softwareVersion() const
 {
     send(SoftwareVersionCommand);
     return receive();
 }
 
-QString MilliOhmMeter::serialNumber()
+QString MilliOhmMeter::serialNumber() const
 {
     send(SerialNumberCommand);
     return receive();
 }
 
-QString MilliOhmMeter::receive()
+QString MilliOhmMeter::receive() const
 {
     QString temp = "";
     QByteArray array;
-    if (serial.waitForReadyRead(firstWaitTime)) {
-        array = serial.readAll();
+    if (serial->waitForReadyRead(firstWaitTime)) {
+        array = serial->readAll();
         temp = QString(array);
 
-        while (serial.waitForReadyRead(additionalWaitTime)) {
-            array = serial.readAll();
+        while (serial->waitForReadyRead(additionalWaitTime)) {
+            array = serial->readAll();
             temp += QString(array);
         }
     }

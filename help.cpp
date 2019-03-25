@@ -16,7 +16,7 @@ Help::~Help()
     delete ui;
 }
 
-void Help::infoSlot(const QString Software,const QString Serial)
+void Help::infoSlot(const QString &Software,const QString &Serial)
 {
     ui->lineEdit_Software_Version->setText(Software);
     ui->lineEdit_Serial_Number->setText(Serial);

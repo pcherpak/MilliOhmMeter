@@ -13,57 +13,57 @@ class MilliOhmMeter : public QObject
 public:
     MilliOhmMeter();
     bool connectSerial(const QString&);
-    void disconnectSerial();
-    QSerialPort::SerialPortError serialError();
+    void disconnectSerial() const;
+    QSerialPort::SerialPortError serialError() const;
 
-    QString receive();
-    void send(const QString&);
+    QString receive() const;
+    void send(const QString&) const;
 
-    void activation();
-    void deactivation();
+    void activation() const;
+    void deactivation() const;
 
-    void lowLimit(QString);
-    void highLimit(QString);
-    QString lowLimit();
-    QString highLimit();
+    void lowLimit(QString) const;
+    void highLimit(QString) const;
+    QString lowLimit() const;
+    QString highLimit() const;
 
-    bool autoRange();
-    void autoRange(bool);
+    bool autoRange() const;
+    void autoRange(bool) const;
 
-    bool hold();
-    void hold(bool);
+    bool hold() const;
+    void hold(bool) const;
 
-    bool nullCollection();
-    void nullCollection(bool);
+    bool nullCollection() const;
+    void nullCollection(bool) const;
 
-    bool beeper();
-    void beeper(bool);
+    bool beeper() const;
+    void beeper(bool) const;
 
-    bool rate();
-    void rate(bool);
+    bool rate() const;
+    void rate(bool) const;
 
-    void range20mOhm();
+    void range20mOhm() const;
 
-    void local();
+    void local() const;
 
-    void downRange();
-    void upRange();
+    void downRange() const;
+    void upRange() const;
 
-    double value(); //Ohms
+    double value() const; //Ohms
 
-    void compare(bool);
-    bool compare();
-    QString compareResult();
+    void compare(bool) const;
+    bool compare() const;
+    QString compareResult() const;
 
-    QString softwareVersion();
-    QString serialNumber();
+    QString softwareVersion() const;
+    QString serialNumber() const;
 signals:
-    void error(QString);
+    void error(QString) const;
 private:
-    QSerialPort serial;
+    QSerialPort *serial;
 
-    int firstWaitTime = 500;
-    int additionalWaitTime = 150;
+    const int firstWaitTime = 500;
+    const int additionalWaitTime = 150;
 
     QString ActivationCommand = "[+]";
     QString DeactivationCommand = "[-]";
