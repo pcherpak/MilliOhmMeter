@@ -46,6 +46,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->customPlot_Resistance->xAxis->setLabel("Time (s)");
     ui->customPlot_Resistance->yAxis->setLabel("Resistance (Ohm)");
     ui->customPlot_Resistance->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    ui->lineEdit_Command->setVisible(false);
+    ui->lineEdit_Response->setVisible(false);
+    ui->pushButton_Send->setVisible(false);
+    ui->label_2->setVisible(false);
+    ui->label_3->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -113,11 +118,13 @@ void MainWindow::on_pushButton_Connect_clicked()
         ui->pushButton_Connect->setText("Disconnect");
         ui->pushButton_RC_enable->setEnabled(true);
         milliOhmMeter->deactivation();
-    } else {
         on_pushButton_RC_enable_clicked();
+    } else {
+        if(ui->pushButton_RC_enable->text() == "Disable")
+            on_pushButton_RC_enable_clicked();
+        ui->pushButton_Connect->setText("Connect");
         milliOhmMeter->disconnectSerial();
         ui->pushButton_RC_enable->setEnabled(false);
-        ui->pushButton_Connect->setText("Connect");
     }
 }
 
@@ -323,4 +330,18 @@ void MainWindow::on_pushButton_import_clicked()
     ui->customPlot_Resistance->rescaleAxes();
     ui->customPlot_Resistance->replot();
 
+}
+
+void MainWindow::on_actionHack_triggered()
+{
+    bool bl;
+    if(ui->label_2->isVisible())
+        bl = false;
+    else
+        bl = true;
+    ui->lineEdit_Command->setVisible(bl);
+    ui->lineEdit_Response->setVisible(bl);
+    ui->pushButton_Send->setVisible(bl);
+    ui->label_2->setVisible(bl);
+    ui->label_3->setVisible(bl);
 }

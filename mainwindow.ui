@@ -692,6 +692,7 @@
     </property>
     <addaction name="action_COM_Port_Update"/>
     <addaction name="actionHelp"/>
+    <addaction name="actionHack"/>
    </widget>
    <addaction name="menuOptional"/>
   </widget>
@@ -712,6 +713,11 @@
   <action name="actionHelp">
    <property name="text">
     <string>Help</string>
+   </property>
+  </action>
+  <action name="actionHack">
+   <property name="text">
+    <string>Hack</string>
    </property>
   </action>
  </widget>

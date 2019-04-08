@@ -73,6 +73,8 @@ private slots:
 
     void on_pushButton_import_clicked();
 
+    void on_actionHack_triggered();
+
 signals:
     void response(const QString &s);
     //void mouseMove(QMouseEvent*);
